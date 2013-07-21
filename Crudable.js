@@ -1,22 +1,19 @@
-﻿var extend = function (childClass, classBase) {
-    childClass.prototype = new classBase();
-    childClass.prototype.constructor = childClass;
-};
-
-var Crudable = (function () {
-    /*@protected*/
+﻿JSORM.define("JSORM.Crudable",{
+  
+  constructor:function(){
+    var _isCrudable = function(p){return typeof p === "object" && p instanceof JSORM.Crudable ;};
     var _emitAssignments = function (p) { return isNaN(this[p]) ? "'" + this[p] + "'" : this[p]; };
-    /*@protected*/
+    //@private
     var _emitCreateStatement = function(isNew) {
         var insertstm = ["INSERT", "INTO"],
-            entity = this.getModelName().toUpperCase(),
+            entity = this.getType(),
             columns = [],
             values = [];
 
         for (var p in this) {
             if (typeof this[p] === "function") continue;
             //attemp to save children first
-            if (typeof this[p] === "object" && this[p] instanceof Crudable) {
+            if (_isCrudable(this[p])) {
                 console.log(this[p].save(isNew));continue;
             }
 
@@ -36,17 +33,17 @@ var Crudable = (function () {
         insertstm.push(values);
         console.log(insertstm.join(" "));
     };
-    /*@protected*/
+    //@private
     var _emitUpdateStatement = function() {
         var upstm = ["UPDATE"],
-            entity = this.getModelName().toUpperCase(),
+            entity = this.getType(),
             values = [],
             whereCls = [];
 
         for (var p in this) {
             if (typeof this[p] === "function") continue;
-            //attemp to save children first
-            if (typeof this[p] === "object" && this[p] instanceof Crudable) {
+            //attempt to save children first
+            if (_isCrudable(this[p])) {
                 console.log(this[p].update()); continue;
             }
             if (typeof this[p] !== "object") {
@@ -69,17 +66,16 @@ var Crudable = (function () {
 
         console.log(upstm.join(" "));
     };
-    
-    //@protected
-    var _emitDeleteStatement = function() {
+	//private
+	var _emitDeleteStatement = function() {
         var delstmnt = ["DELETE"],
-            entity = this.getModelName().toUpperCase(),
+            entity = this.getType(),
             whereCls = [];
         
         for (var p in this) {
             if (typeof this[p] === "function") continue;
-            //attemp to save children first
-            if (typeof this[p] === "object" && this[p] instanceof Crudable) {
+            //attempt to save children first
+            if (_isCrudable(this[p])) {
                 console.log(this[p].delete()); continue;
             }
             if (typeof this[p] !== "object") {
@@ -97,28 +93,22 @@ var Crudable = (function () {
         console.log(delstmnt.join(" "));
             
     };
-    
-    //@ public constructor
-    function Crudable() { };
-    //@ public 
-    Crudable.prototype.keys = {};
-    //@ public 
-    Crudable.prototype.getModelName = function() {
-        throw "Not Implemented exception func: `getModelName`";
-    };
-    //@ public 
-    Crudable.prototype.save = function(isNew) {
+    //@protected
+    this.save = function(isNew) {
         if (isNew) _emitCreateStatement.apply(this,[isNew]);
         else _emitUpdateStatement.apply(this);
     };
-    //@ public 
-    Crudable.prototype.update = function() {
+    //@protected
+    this.update = function() {
         _emitUpdateStatement.apply(this);
     };
-    //@ public 
-    Crudable.prototype.delete = function () {
+    //@protected
+    this.deleteSelf = function () {
         _emitDeleteStatement.apply(this);
     };
+  },  
+  //@public
+  keys:{}
+  
 
-    return Crudable;
-})();
+});
