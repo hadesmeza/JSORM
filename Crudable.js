@@ -1,10 +1,10 @@
 ﻿JSORM.define("JSORM.Crudable",{
   
   constructor:function(){
-    var _isCrudable = function(p){return typeof p === "object" && p instanceof JSORM.Crudable ;};
-    var _emitAssignments = function (p) { return isNaN(this[p]) ? "'" + this[p] + "'" : this[p]; };
+    var isCrudable = function(p){return typeof p === "object" && p instanceof JSORM.Crudable ;};
+    var emitAssignments = function (p) { return isNaN(this[p]) ? "'" + this[p] + "'" : this[p]; };
     //@private
-    var _emitCreateStatement = function(isNew) {
+    var emitCreateStatement = function(isNew) {
         var insertstm = ["INSERT", "INTO"],
             entity = this.getType(),
             columns = [],
@@ -12,15 +12,15 @@
 
         for (var p in this) {
             if (typeof this[p] === "function") continue;
-            //attemp to save children first
-            if (_isCrudable(this[p])) {
+            //attempt to save children first
+            if (isCrudable(this[p])) {
                 console.log(this[p].save(isNew));continue;
             }
 
             if (typeof this[p] !== "object") {
                 columns.push(p);
                 values.push(this[p] ?
-                    _emitAssignments.apply(this, [p])
+                    emitAssignments.apply(this, [p])
                     : "null");
             }
         }
@@ -31,10 +31,10 @@
         insertstm.push(entity);
         insertstm.push(columns);
         insertstm.push(values);
-        console.log(insertstm.join(" "));
+        JSORM.Crudable.repository().executeScalar(insertstm.join(" "));
     };
     //@private
-    var _emitUpdateStatement = function() {
+    var emitUpdateStatement = function() {
         var upstm = ["UPDATE"],
             entity = this.getType(),
             values = [],
@@ -43,17 +43,17 @@
         for (var p in this) {
             if (typeof this[p] === "function") continue;
             //attempt to save children first
-            if (_isCrudable(this[p])) {
+            if (isCrudable(this[p])) {
                 console.log(this[p].update()); continue;
             }
             if (typeof this[p] !== "object") {
                 values.push(this[p]
-                                     ? p + " = " + _emitAssignments.apply(this, [p])
+                                     ? p + " = " + emitAssignments.apply(this, [p])
                                      :"null");
 
                 //build where clause
                 if (this.keys[p]) {
-                    var val = _emitAssignments.apply(this, [p]);
+                    var val = emitAssignments.apply(this, [p]);
                     whereCls.push(p + " = " + val);
                 }
             }
@@ -64,10 +64,10 @@
         upstm.push(values);
         upstm.push(whereCls);
 
-        console.log(upstm.join(" "));
+        JSORM.Crudable.repository().executeScalar(upstm.join(" "));
     };
 	//private
-	var _emitDeleteStatement = function() {
+	var emitDeleteStatement = function() {
         var delstmnt = ["DELETE"],
             entity = this.getType(),
             whereCls = [];
@@ -75,13 +75,13 @@
         for (var p in this) {
             if (typeof this[p] === "function") continue;
             //attempt to save children first
-            if (_isCrudable(this[p])) {
+            if (isCrudable(this[p])) {
                 console.log(this[p].delete()); continue;
             }
             if (typeof this[p] !== "object") {
                 //build where clause
                 if (this.keys[p]) {
-                    var val = _emitAssignments.apply(this, [p]);
+                    var val = emitAssignments.apply(this, [p]);
                     whereCls.push(p + " = " + val);
                 }
             }
@@ -90,25 +90,55 @@
         whereCls = " WHERE " + whereCls.join(" and ");
         delstmnt.push(entity);
         delstmnt.push(whereCls);
-        console.log(delstmnt.join(" "));
+		JSORM.Crudable.repository().executeScalar(delstmnt.join(" "));
             
+    };
+	var emitSelectStatement = function(){
+	var statement = ["SELECT * FROM", this.getType()],
+	 whereCls = [];        
+        for (var p in this) {
+            if (typeof this[p] === "function") continue;
+            //attempt to save children first
+            if (isCrudable(this[p])) {
+                //this[p].getByKeys(); continue;
+            }
+            if (typeof this[p] !== "object") {
+                //build where clause
+                if (this.keys[p]) {
+                    var val = emitAssignments.apply(this, [p]);
+                    whereCls.push(p + " = " + val);
+                }
+            }
+        }        
+        whereCls = " WHERE " + whereCls.join(" and ");
+		statement.push(whereCls);
+		var dto =  JSORM.Crudable.repository(this.getRawTypeWithNS()).executeReader(statement.join(" "));
+		for(var item in dto){
+		    if(this.hasOwnProperty(item))this[item] = dto[item];
+		}
+	};
+	//@protected
+    this.getByKeys = function() {
+         emitSelectStatement.apply(this);        
     };
     //@protected
     this.save = function(isNew) {
-        if (isNew) _emitCreateStatement.apply(this,[isNew]);
-        else _emitUpdateStatement.apply(this);
+        if (isNew) emitCreateStatement.apply(this,[isNew]);
+        else emitUpdateStatement.apply(this);
     };
     //@protected
     this.update = function() {
-        _emitUpdateStatement.apply(this);
+        emitUpdateStatement.apply(this);
     };
     //@protected
     this.deleteSelf = function () {
-        _emitDeleteStatement.apply(this);
+        emitDeleteStatement.apply(this);
     };
   },  
   //@public
-  keys:{}
+  keys:{},
+  statics:{
+   repository: function( TYPE, args ) { return new JSORM.MockRepository(TYPE, args); }
   
-
+  }
 });

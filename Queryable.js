@@ -33,7 +33,7 @@ JSORM.define("JSORM.Queryable",{
 					if (!utils.isLambda(lambda)) throw "Not a valid lambda expression.";
 				},
 				KEYWORDS: {
-					SELECT: " SELECT ",
+					SELECT: "SELECT ",
 					ALL: " * ",
 					FROM: " FROM ",
 					WHERE: " WHERE ", 

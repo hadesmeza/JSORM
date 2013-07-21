@@ -12,6 +12,7 @@ klass {String}
 JSORM.define = function (klass, obj) {
 
     //create class template traversing namespaces
+	var source = klass;
 	var $ctor = obj.constructor || function(){};
     var nsNavigator = window;
     var ns = klass.split(".");
@@ -40,6 +41,9 @@ JSORM.define = function (klass, obj) {
     }
   
     // add reflection help
+	 klass.prototype.getRawTypeWithNS = function(){
+    return source;
+    },
     klass.prototype.getType = function(){
     return TYPE.toUpperCase();
     },

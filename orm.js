@@ -11,7 +11,15 @@ JSORM.define("MODELS.customer",{
   name:true,
   lastName:true
   },
-  statics:{
+  statics:{  
+  getCustomerByKeys: function(keys){
+   var cust  = new MODELS.customer();
+   for(var k in keys){
+     cust[k] = keys[k];
+   }
+    cust.getByKeys(keys);
+	return cust;
+  }
   
   }
   
@@ -27,3 +35,7 @@ cust.save(true);
 cust.update();
 cust.deleteSelf();
 JSORM.Queryable(MODELS.customer).Where("i => i.age >= 25 && i.lastName === 'Meza'").OrderByDescending("i=> i.lastName").ToArray();
+
+var newCust = MODELS.customer.getCustomerByKeys({ name:"hades", lastName:"Meza"});
+
+console.log(newCust);
