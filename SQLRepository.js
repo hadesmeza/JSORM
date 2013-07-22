@@ -16,7 +16,11 @@ JSORM.define("JSORM.Activator",{
         if (!nsNavigator) throw "namespace :`" + ns[i] + "` was not found";
     }
 	if( typeof nsNavigator[TYPE] !== "function" ) throw "Unable to create an instance of `TYPE`" + TYPE;
-	return new nsNavigator[TYPE](args);
+	
+	return {
+	    	instance :new nsNavigator[TYPE](args),
+		    type:nsNavigator[TYPE]
+		   };
   }
   }
 
@@ -38,17 +42,12 @@ JSORM.define("JSORM.IRepository",{
 JSORM.define("JSORM.MockRepository",{  
    //todo 
   //edge = require('edge');
-  extends:"IRepository",
-  //public overload function(  )
-  //public overload function( TYPE )
-  //public overload function( TYPE, args )
-  constructor:function( TYPE, args ){
-  this.TYPE = TYPE;
-  this.args = args || {};
+  extends:"JSORM.IRepository",
+  constructor:function(  ){
   },
-  executeReader:function(statement){ 
+  executeReader:function(Treturn, statement){ 
   console.log(statement);
-  var instance = JSORM.Activator.createInstanceOf(this.TYPE, this.args);
+  var instance = JSORM.Activator.createInstanceOf(Treturn).instance;
   
   for (var p in instance) {
             if (instance.hasOwnProperty(p)) {

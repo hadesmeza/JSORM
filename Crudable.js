@@ -112,7 +112,7 @@
         }        
         whereCls = " WHERE " + whereCls.join(" and ");
 		statement.push(whereCls);
-		var dto =  JSORM.Crudable.repository(this.getRawTypeWithNS()).executeReader(statement.join(" "));
+		var dto =  JSORM.Crudable.repository().executeReader(this.getTypeWithNS(),statement.join(" "));
 		for(var item in dto){
 		    if(this.hasOwnProperty(item))this[item] = dto[item];
 		}

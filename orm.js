@@ -1,10 +1,10 @@
 ﻿var MODELS = {};
 JSORM.define("MODELS.customer",{
-  extends:"Crudable",
+  extends:"JSORM.Crudable",
   constructor:function(){
   this.name="";
   this.lastName="";
-  this.age =0;
+  this.age =0;  
   },
   //overrides
   keys:{

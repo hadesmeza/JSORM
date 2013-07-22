@@ -1,7 +1,7 @@
 var JSORM ={};
 /*
 obj{
-constructor {function}
+constructor {function}  this.superClass.call(this) to pass arguments to the superclass contructor
 statics {object}
 overrides {object}
 extends {String}
@@ -27,11 +27,12 @@ JSORM.define = function (klass, obj) {
 	//add .ctor
 	nsNavigator[TYPE] = $ctor;
     klass = nsNavigator[TYPE];
-	klass.prototype.METADATA={};
    //extend if a class is passed
     if (obj.extends) {
-        klass.prototype = new JSORM[obj.extends]();
-         klass.prototype.constructor = klass; 		 
+        var template = JSORM.Activator.createInstanceOf(obj.extends);
+		klass.prototype = template.instance;
+		klass.prototype.superClass = template.type;
+        klass.prototype.constructor = klass; 		 
     }
     //add non static methods
     for (var fn in obj) {
@@ -41,16 +42,9 @@ JSORM.define = function (klass, obj) {
     }
   
     // add reflection help
-	 klass.prototype.getRawTypeWithNS = function(){
-    return source;
-    },
-    klass.prototype.getType = function(){
-    return TYPE.toUpperCase();
-    },
-   
-    klass.prototype.getSuperType =function(){
-    return obj.extends ? obj.extends.toUpperCase() : "undefined";
-    }
+	klass.prototype.getTypeWithNS = function(){return source;};
+    klass.prototype.getType = function(){return TYPE.toUpperCase();};   
+    klass.prototype.getSuperType =function(){ return obj.extends ? obj.extends : "undefined";};
     //check for overrides
     if (obj.overrides) {
         for (var fn in obj.overrides) {
@@ -65,5 +59,5 @@ JSORM.define = function (klass, obj) {
     }
     //add Type
     klass.$type = klass.prototype.getType();
-	klass.$superType = klass.prototype.getSuperType();
+	klass.$superType = obj.extends;
 };

@@ -3,7 +3,7 @@
 JSORM.define("JSORM.Queryable",{
        
  constructor: function ( TYPE ) {
- if(  TYPE.$superType !== "CRUDABLE"  ) throw "`TYPE` must implement Crudable";
+ if(  TYPE.$superType !== "JSORM.Crudable"  ) throw "`TYPE` must implement Crudable";
 		var expressions = [],
 		    utils = {
 				processLambda: function (clause) {
